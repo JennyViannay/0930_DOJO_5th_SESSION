@@ -4,6 +4,9 @@ namespace App\Controller;
 
 use App\Model\ArticleManager;
 use App\Model\CommandManager;
+use App\Model\BrandManager;
+use App\Model\ColorManager;
+use App\Model\SizeManager;
 
 class AdminController extends AbstractController
 {
@@ -24,6 +27,13 @@ class AdminController extends AbstractController
 
     public function editArticle($id = null)
     {
+        $brandManager = new BrandManager();
+        $brands = $brandManager->selectAll();
+        $sizeManager = new SizeManager();
+        $sizes = $sizeManager->selectAll();
+        $colorManager = new ColorManager();
+        $colors = $colorManager->selectAll();
+
         if (!isset($_SESSION['username'])) {
             header('Location:/home/index');
         }
@@ -34,7 +44,9 @@ class AdminController extends AbstractController
             $article = $articleManager->selectOneById($id);
         }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            if (!empty($_POST['name']) && !empty($_POST['price']) && !empty($_POST['img'])) {
+            if (!empty($_POST['model']) && !empty($_POST['price']) && !empty($_POST['brand_id'])
+            && !empty($_POST['size_id']) && !empty($_POST['color_id']) && !empty($_POST['qty'])
+            ) {
                 $this->sendArticle($_POST, $id);
             } else {
                 $errorForm = 'Tous les champs sont obligatoires.';
@@ -42,6 +54,9 @@ class AdminController extends AbstractController
         }
         return $this->twig->render('Admin/edit_article.html.twig', [
             'article' => $article ? $article : null,
+            'brands' => $brands,
+            'colors' => $colors,
+            'sizes' => $sizes,
             'errorForm' => $errorForm
         ]);
     }
@@ -49,17 +64,21 @@ class AdminController extends AbstractController
     public function sendArticle($data, $id)
     {
         $articleManager = new ArticleManager();
-        $data = [
+        $article = [
             'id' => $id ? $id : '',
-            'name' => $data['name'],
+            'model' => $data['model'],
             'price' => $data['price'],
-            'img' => $data['img']
+            'qty' => $data['qty'],
+            'brand_id' => $data['brand_id'],
+            'color_id' => $data['color_id'],
+            'size_id' => $data['size_id']
         ];
-        if (isset($data['id']) && !empty($data['id'])) {
+        if (isset($article['id']) && !empty($article['id'])) {
             $articleManager->update($data);
             header('Location:/admin/index');
         } else {
-            $articleManager->insert($data);
+            $id = $articleManager->insert($article);
+            // TODO :: CREATE IMAGE 
             header('Location:/admin/index');
         }
     }

@@ -20,9 +20,62 @@ class ArticleManager extends AbstractManager
         parent::__construct(self::TABLE);
     }
 
+    public function selectAll(): array
+    {
+        $articles = $this->pdo->query('SELECT
+        art.id, art.brand_id, art.model, art.qty, art.model, art.price, art.size_id, art.color_id, 
+        brand.name as brand_name,
+        color.name as color_name,
+        size.size as size 
+        FROM article as art 
+        JOIN brand ON art.brand_id=brand.id
+        JOIN color ON art.color_id=color.id
+        JOIN size ON art.size_id=size.id
+        ')->fetchAll();
+
+        $images = $this->pdo->query('SELECT url, article_id FROM image')->fetchAll();
+
+        $result = [];
+        foreach ($articles as $article) {
+            $statementImg = $this->pdo->prepare('SELECT url FROM image WHERE article_id=:article_id');
+            $statementImg->bindValue('article_id', $article['id'], \PDO::PARAM_INT);
+            $statementImg->execute();
+            $images = $statementImg->fetchAll();
+            $article['images'] = $images;
+        }
+        
+        return $articles;
+    }
+
+    public function selectOneById(int $id)
+    {
+        // prepared request
+        $statement = $this->pdo->prepare("SELECT
+        art.id, art.brand_id, art.model, art.qty, art.model, art.price, art.size_id, art.color_id, 
+        brand.name as brand_name,
+        color.name as color_name,
+        size.size as size 
+        FROM article as art 
+        JOIN brand ON art.brand_id=brand.id
+        JOIN color ON art.color_id=color.id
+        JOIN size ON art.size_id=size.id
+        WHERE art.id=:id");
+        $statement->bindValue('id', $id, \PDO::PARAM_INT);
+        $statement->execute();
+        $article = $statement->fetch();
+
+        $statementImg = $this->pdo->prepare('SELECT url FROM image WHERE article_id=:article_id');
+        $statementImg->bindValue('article_id', $id, \PDO::PARAM_INT);
+        $statementImg->execute();
+        $images = $statementImg->fetchAll();
+        $article['images'] = $images;
+
+        return $article;
+    }
+
     public function search(string $term): array
     {
-        $statement = $this->pdo->prepare("SELECT * FROM " . self::TABLE . " WHERE name LIKE :search ORDER BY name ASC");
+        $statement = $this->pdo->prepare("SELECT * FROM " . self::TABLE . " WHERE model LIKE :search ORDER BY name ASC");
         $statement->bindValue('search', $term.'%', \PDO::PARAM_STR);
         $statement->execute();
         $articles = $statement->fetchAll();
@@ -36,10 +89,13 @@ class ArticleManager extends AbstractManager
     public function insert(array $article): int
     {
         // prepared request
-        $statement = $this->pdo->prepare("INSERT INTO " . self::TABLE . " (name, price, img) VALUES (:name, :price, :img)");
-        $statement->bindValue('name', $article['name'], \PDO::PARAM_STR);
+        $statement = $this->pdo->prepare("INSERT INTO " . self::TABLE . " (brand_id, qty, model, price, size_id, color_id) VALUES (:brand_id, :qty, :model, :price, :size_id, :color_id)");
+        $statement->bindValue('brand_id', $article['brand_id'], \PDO::PARAM_INT);
+        $statement->bindValue('qty', $article['qty'], \PDO::PARAM_INT);
+        $statement->bindValue('model', $article['model'], \PDO::PARAM_STR);
         $statement->bindValue('price', $article['price'], \PDO::PARAM_INT);
-        $statement->bindValue('img', $article['img'], \PDO::PARAM_STR);
+        $statement->bindValue('size_id', $article['size_id'], \PDO::PARAM_INT);
+        $statement->bindValue('color_id', $article['color_id'], \PDO::PARAM_INT);
 
         if ($statement->execute()) {
             return (int)$this->pdo->lastInsertId();
@@ -67,11 +123,14 @@ class ArticleManager extends AbstractManager
     {
 
         // prepared request
-        $statement = $this->pdo->prepare("UPDATE " . self::TABLE . " SET name=:name, price=:price, img=:img WHERE id=:id");
+        $statement = $this->pdo->prepare("UPDATE " . self::TABLE . " SET brand_id=:brand_id, qty=:qty, model=:model, price:price, size_id:size_id, color_id:color_id WHERE id=:id");
         $statement->bindValue('id', $article['id'], \PDO::PARAM_INT);
-        $statement->bindValue('name', $article['name'], \PDO::PARAM_STR);
+        $statement->bindValue('brand_id', $article['brand_id'], \PDO::PARAM_INT);
+        $statement->bindValue('qty', $article['qty'], \PDO::PARAM_INT);
+        $statement->bindValue('model', $article['model'], \PDO::PARAM_STR);
         $statement->bindValue('price', $article['price'], \PDO::PARAM_INT);
-        $statement->bindValue('img', $article['img'], \PDO::PARAM_STR);
+        $statement->bindValue('size_id', $article['size_id'], \PDO::PARAM_INT);
+        $statement->bindValue('color_id', $article['color_id'], \PDO::PARAM_INT);
 
         return $statement->execute();
     }

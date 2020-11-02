@@ -50,15 +50,15 @@ class SecurityController extends AbstractController
                     $error = 'Password do not match';
                 }
                 if ($error === null) {
-                    $payload = [
+                    $user = [
                         'email' => $_POST['email'],
                         'username' => $_POST['username'],
                         'password' => md5($_POST['password'])
                     ];
-                    $idUser = $userManager->insert($payload);
+                    $idUser = $userManager->insert($user);
                     if ($idUser) {
                         $_SESSION['user_id'] = $idUser;
-                        $_SESSION['username'] = $payload['username'];
+                        $_SESSION['username'] = $user['username'];
                         header('Location:/admin/index');
                     }
                 }

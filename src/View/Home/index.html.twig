@@ -21,9 +21,9 @@
         {% for article in articles %}
         <div class="col-lg-3 col-md-6 col-sm-12 my-3">
             <div class="card">
-                <img src="{{article.img}}" class="card-img-top" alt="air max 270">
+                <img src="{{article.image.url}}" class="card-img-top" alt="air max 270">
                 <div class="card-body text-center">
-                    <h5 class="card-title">{{article.name}}</h5>
+                    <h5 class="card-title">{{article.model}} - {{article.brand_name}}</h5>
                     <p>{{article.price}} $</p>
                 </div>
                 <div class="card-footer ">
