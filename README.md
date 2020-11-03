@@ -5,7 +5,7 @@
 - Les filtres de recherches pour les articles :
 - Dans ArticleManager écrire les méthodes =>
   
-  * selectAll qui doit retourner id, model, brand_id, color_id, size_id, qty, price ainsi que brand.name, color.name et size.size ainsi que les images de l'articles de puis la table image
+  * selectAll qui doit retourner id, model, brand_id, color_id, size_id, qty, price ainsi que brand.name, color.name et size.size ainsi que les images de l'articles depuis la table image
   ATTENTION : La data doit être restructurer pour s'afficher correctement dans la vue
 
   * selectOneById qui doit retourner id, model, brand_id, color_id, size_id, qty, price ainsi que brand.name, color.name et size.size ainsi que les images de l'articles de puis la table image

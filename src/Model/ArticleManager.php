@@ -19,10 +19,37 @@ class ArticleManager extends AbstractManager
     {
         parent::__construct(self::TABLE);
     }
-
+    // SIZE id size
+    // selectAll qui doit retourner id, model, brand_id, color_id, size_id, qty, price 
+    // ainsi que brand.name, color.name et size.size ainsi que les images de l'articles depuis la table image
     public function selectAll(): array
     {
-        
+        $articles = $this->pdo->query("SELECT
+            article.id,
+            article.model,
+            article.qty,
+            article.price,
+            brand.name as brand_name,
+            article.brand_id,
+            color.name as color_name,
+            article.color_id,
+            article.size_id as size
+            FROM article
+            INNER JOIN brand ON article.brand_id=brand.id
+            INNER JOIN size ON article.size_id=size.id
+            INNER JOIN color ON article.color_id=color.id")->fetchAll();
+            
+            $result = [];
+            foreach($articles as $article) {
+                $statement = $this->pdo->prepare("SELECT * FROM image WHERE article_id = :article_id ");
+                $statement->bindValue('article_id', $article['id'], \PDO::PARAM_INT);
+                $statement->execute();
+                $images = $statement->fetchAll();
+
+                $article['images'] = $images;
+                array_push($result, $article);
+            } 
+            return $result;
     }
 
     public function selectOneById(int $id)
@@ -76,12 +103,12 @@ class ArticleManager extends AbstractManager
 
     public function searchByModel(string $term): array
     {
-        
+
     }
 
     public function searchByBrand(int $brand_id): array
     {
-        
+
     }
 
     public function searchByColor(int $color_id): array
