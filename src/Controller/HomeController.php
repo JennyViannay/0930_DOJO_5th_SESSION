@@ -4,6 +4,9 @@ namespace App\Controller;
 
 use App\Model\ArticleManager;
 use App\Service\CartService;
+use App\Model\BrandManager;
+use App\Model\ColorManager;
+use App\Model\SizeManager;
 
 class HomeController extends AbstractController
 {
@@ -19,19 +22,50 @@ class HomeController extends AbstractController
     public function index()
     {
         $cartService = new CartService();
+
+        $brandManager = new BrandManager();
+        $brands = $brandManager->selectAll();
+
+        $sizeManager = new SizeManager();
+        $sizes = $sizeManager->selectAll();
+
+        $colorManager = new ColorManager();
+        $colors = $colorManager->selectAll();
+
         $articleManager = new ArticleManager();
         $articles = $articleManager->selectAll();
+
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
-            if (!empty($_POST['search'])) {
-                $articles = $articleManager->search($_POST['search']);
-            }
             if (!empty($_POST['add_article'])) {
                 $article = $_POST['add_article'];
                 $cartService->add($article);
             }
+            // search
+            if (!empty($_POST['search'])) {
+                $articles = $articleManager->searchByModel($_POST['search']);
+            }
+            // brand_id
+            if (!empty($_POST['brand_id'])) {
+                $articles = $articleManager->searchByBrand($_POST['brand_id']);
+            }
+            // color_id
+            if (!empty($_POST['color_id'])) {
+                $articles = $articleManager->searchByColor($_POST['color_id']);
+            }
+            // size_id
+            if (!empty($_POST['size_id'])) {
+                $articles = $articleManager->searchBySize($_POST['size_id']);
+            }
+            // brand_id + size_id + color_id 
+            if (!empty($_POST['brand_id']) && !empty($_POST['size_id']) && !empty($_POST['color_id'])) {
+                $articles = $articleManager->searchFull($_POST['color_id'], $_POST['size_id'], $_POST['brand_id']);
+            }
         }
         return $this->twig->render('Home/index.html.twig', [
-            'articles' => $articles
+            'articles' => $articles,
+            'brands' => $brands,
+            'colors' => $colors,
+            'sizes' => $sizes,
         ]);
     }
 
